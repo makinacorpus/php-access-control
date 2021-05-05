@@ -1,0 +1,39 @@
+{
+    "name": "makinacorpus/access-control",
+    "description": "Access control micro-framework.",
+    "type": "library",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Makina Corpus",
+            "homepage": "https://makina-corpus.com/"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">= 7.4"
+    },
+    "require-dev": {
+        "doctrine/annotations": "^1.12",
+        "friendsofphp/php-cs-fixer": "^2.16",
+        "phpunit/phpunit": "^9.2",
+        "symfony/config": "^5.0",
+        "symfony/console": "^5.0",
+        "symfony/dependency-injection": "^5.0",
+        "symfony/framework-bundle": "^5.0",
+        "symfony/http-kernel": "^5.0",
+        "symfony/security-core": "^5.0",
+        "symfony/yaml": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MakinaCorpus\\AccessControl\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+             "MakinaCorpus\\AccessControl\\Tests\\": "tests/"
+        }
+    }
+}
