@@ -7,6 +7,7 @@ namespace MakinaCorpus\AccessControl\Bridge\Symfony\EventDispatcher;
 use MakinaCorpus\AccessControl\Authorization;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\HttpKernel\Controller\ErrorController;
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -43,7 +44,9 @@ final class AccessControlKernelEventSubscriber implements EventSubscriberInterfa
     public function onKernelControllerArguments(ControllerArgumentsEvent $event)
     {
         $controller = $event->getController();
-        $arguments = $this->getNamedEventArguments($controller, $event);
+        if ((\is_string($controller) && $controller === ErrorController::class) || (\is_object($controller) && $controller instanceof ErrorController)) {
+            return;
+        }
 
         // A controller can be anything that is "callable" per the PHP engine
         // but we cannot handle all use cases, let's just see how it goes with
@@ -52,14 +55,14 @@ final class AccessControlKernelEventSubscriber implements EventSubscriberInterfa
             // Controller is an instance of something, it could be a closure
             // or a callable class with an __invoke() method, let see is this
             // class has policies.
-            if (!$this->authorization->isGranted($controller, $arguments)) {
+            if (!$this->authorization->isGranted($controller, ...$event->getArguments())) {
                 throw new AccessDeniedException();
             }
         } else if (\is_string($controller)) {
             // A callable string is probably a function name, let's just see
             // if that works.
             // @todo It could be something like "ClassName::method" as well.
-            if (!$this->authorization->isGranted($controller, $arguments)) {
+            if (!$this->authorization->isGranted($controller, ...$event->getArguments())) {
                 throw new AccessDeniedException();
             }
         } else if (\is_array($controller) && \count($controller) === 2) {
@@ -70,53 +73,10 @@ final class AccessControlKernelEventSubscriber implements EventSubscriberInterfa
             $object = $controller[0];
             if (\is_object($object) || (\is_string($object) && \class_exists($object))) {
                 // @todo Arguments are unnamed.
-                if (!$this->authorization->isMethodGranted($object, $controller[1], $arguments)) {
+                if (!$this->authorization->isMethodGranted($object, $controller[1], $event->getArguments())) {
                     throw new AccessDeniedException();
                 }
             }
         }
-    }
-
-    /**
-     * Name event arguments using the method signature.
-     *
-     * This is ugly, please rewrite me properly.
-     */
-    private function getNamedEventArguments($controller, ControllerArgumentsEvent $event): array
-    {
-        if (\is_string($controller)) {
-            try {
-                return $this->getNamedEventArgumentsForFunc(new \ReflectionMethod($controller), $event);
-            } catch (\ReflectionException $e) {
-                // @todo log it
-                return $event->getArguments();
-            }
-        }
-        if (\is_array($controller) && \count($controller) === 2) {
-            $object = $controller[0];
-            if (\is_object($object) || (\is_string($object) && \class_exists($object))) {
-                try {
-                    return $this->getNamedEventArgumentsForFunc((new \ReflectionClass($object))->getMethod($controller[1]), $event);
-                } catch (\ReflectionException $e) {
-                    // @todo log it
-                    return $event->getArguments();
-                }
-            }
-        }
-        // @todo log it
-        return $event->getArguments();
-    }
-
-    /**
-     * Name event arguments using the method signature.
-     */
-    private function getNamedEventArgumentsForFunc(\ReflectionFunctionAbstract $refFunc, ControllerArgumentsEvent $event): array
-    {
-        $arguments = $event->getArguments();
-        foreach ($refFunc->getParameters() as $parameter) {
-            \assert($parameter instanceof \ReflectionParameter);
-            $arguments[$parameter->getName()] = $arguments[$parameter->getPosition()] ?? null;
-        }
-        return $arguments;
     }
 }

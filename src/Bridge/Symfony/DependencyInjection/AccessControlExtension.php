@@ -26,6 +26,7 @@ use MakinaCorpus\AccessControl\ServiceLocator\ServiceLocator;
 use MakinaCorpus\AccessControl\SubjectLocator\ChainSubjectLocator;
 use MakinaCorpus\AccessControl\SubjectLocator\MemoryCacheSubjectLocator;
 use MakinaCorpus\AccessControl\SubjectLocator\SubjectLocator;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -136,18 +137,22 @@ final class AccessControlExtension extends Extension
         $container->setDefinition(ContainerServiceLocator::class, $containerServiceLocator);
 
         // @todo register this only if configuration requires it.
-        $userSubjectLocator = new Definition();
-        $userSubjectLocator->setClass(UserSubjectLocator::class);
-        $userSubjectLocator->setArguments([new Reference('security.helper')]);
-        $userSubjectLocator->addTag('access_control.subject_locator');
-        $container->setDefinition(UserSubjectLocator::class, $userSubjectLocator);
+        if (false) {
+            $userSubjectLocator = new Definition();
+            $userSubjectLocator->setClass(UserSubjectLocator::class);
+            $userSubjectLocator->setArguments([new Reference('security.helper')]);
+            $userSubjectLocator->addTag('access_control.subject_locator');
+            $container->setDefinition(UserSubjectLocator::class, $userSubjectLocator);
+        }
 
         // @todo register this only if configuration requires it.
-        $userRoleChecker = new Definition();
-        $userRoleChecker->setClass(UserRoleChecker::class);
-        $userRoleChecker->addMethodCall('setRoleHierarchy', [new Reference('security.role_hierarchy')]);
-        $userRoleChecker->addTag('access_control.role');
-        $container->setDefinition(UserRoleChecker::class, $userRoleChecker);
+        if (false) {
+            $userRoleChecker = new Definition();
+            $userRoleChecker->setClass(UserRoleChecker::class);
+            $userRoleChecker->addMethodCall('setRoleHierarchy', [new Reference('security.role_hierarchy')]);
+            $userRoleChecker->addTag('access_control.role');
+            $container->setDefinition(UserRoleChecker::class, $userRoleChecker);
+        }
 
         // @todo register this only if configuration requires it.
         $kernelEventSubscriber = new Definition();
@@ -160,7 +165,7 @@ final class AccessControlExtension extends Extension
     /**
      * {@inheritdoc}
      */
-    public function getConfiguration(array $config, ContainerBuilder $container)
+    public function getConfiguration(array $config, ContainerBuilder $container): ?ConfigurationInterface
     {
         return new AccessControlConfiguration();
     }

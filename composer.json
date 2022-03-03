@@ -12,20 +12,19 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">= 7.4",
-        "psr/log": ">= 1.0"
+        "php": ">=8.0",
+        "psr/log": ">=1.0"
     },
     "require-dev": {
-        "doctrine/annotations": "^1.12",
         "friendsofphp/php-cs-fixer": "^2.16",
         "phpunit/phpunit": "^9.2",
-        "symfony/config": "^5.0",
-        "symfony/console": "^5.0",
-        "symfony/dependency-injection": "^5.0",
-        "symfony/framework-bundle": "^5.0",
-        "symfony/http-kernel": "^5.0",
-        "symfony/security-core": "^5.0",
-        "symfony/yaml": "^5.0"
+        "symfony/config": "^5.4 || ^6.0",
+        "symfony/console": "^5.4 || ^6.0",
+        "symfony/dependency-injection": "^5.4 || ^6.0",
+        "symfony/framework-bundle": "^5.4 || ^6.0",
+        "symfony/http-kernel": "^5.4 || ^6.0",
+        "symfony/security-core": "^5.4 || ^6.0",
+        "symfony/yaml": "^5.4 || ^6.0"
     },
     "autoload": {
         "psr-4": {
