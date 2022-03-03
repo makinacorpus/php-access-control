@@ -24,7 +24,7 @@ final class UserSubjectLocatorTest extends TestCase
             $subject = new User('foo', null, ['ROLE_TESTING']);
         }
 
-        $token = new PreAuthenticatedToken($subject, [], 'default');
+        $token = new PreAuthenticatedToken($subject, 'default', []);
 
         $tokenStorage = new TokenStorage();
         $tokenStorage->setToken($token);

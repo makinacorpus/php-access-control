@@ -9,8 +9,6 @@ namespace MakinaCorpus\AccessControl;
  *
  * Usage:
  *   #[AccessAllOrNothing]
- *
- * @Annotation
  */
 #[\Attribute]
 final class AccessAllOrNothing implements AccessPolicy

@@ -9,26 +9,15 @@ namespace MakinaCorpus\AccessControl;
  *
  * Usage:
  *   #[AccessPermission("do that")]
- *
- * @Annotation
  */
 #[\Attribute(\Attribute::IS_REPEATABLE | \Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::TARGET_FUNCTION)]
 final class AccessPermission implements AccessPolicy
 {
     private string $permission;
 
-    public function __construct($permission)
+    public function __construct(string $permission)
     {
-        // Doctrine BC compat (is_array() call).
-        if (\is_array($permission)) {
-            if (\is_array($permission['value'])) {
-                $this->permission = $permission['value'][0];
-            } else {
-                $this->permission = $permission['value'];
-            }
-        } else {
-            $this->permission = $permission;
-        }
+        $this->permission = $permission;
     }
 
     public function getPermission(): string

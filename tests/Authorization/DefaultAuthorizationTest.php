@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace MakinaCorpus\AccessControl\Tests\Authorization;
 
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
 use MakinaCorpus\AccessControl\AccessAllow;
 use MakinaCorpus\AccessControl\AccessDeny;
 use MakinaCorpus\AccessControl\AccessPolicy;
 use MakinaCorpus\AccessControl\Authorization\DefaultAuthorization;
 use MakinaCorpus\AccessControl\Error\AccessConfigurationError;
 use MakinaCorpus\AccessControl\Error\AccessRuntimeError;
-use MakinaCorpus\AccessControl\PolicyLoader\AnnotationPolicyLoader;
+use MakinaCorpus\AccessControl\PolicyLoader\AttributePolicyLoader;
 use MakinaCorpus\AccessControl\PolicyLoader\NullPolicyLoader;
 use MakinaCorpus\AccessControl\PolicyLoader\PolicyLoader;
 use MakinaCorpus\AccessControl\ResourceLocator\ChainResourceLocator;
@@ -483,10 +481,6 @@ final class DefaultAuthorizationTest extends TestCase
 
     protected function createPolicyLoader(): PolicyLoader
     {
-        AnnotationRegistry::registerLoader('class_exists');
-
-        return new AnnotationPolicyLoader(
-            new AnnotationReader()
-        );
+        return new AttributePolicyLoader();
     }
 }

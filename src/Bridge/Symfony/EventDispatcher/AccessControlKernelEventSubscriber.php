@@ -13,7 +13,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * Listen on kernel event, when controller is found, in order to be able to
- * read its annotation and allow or disallow access to it.
+ * read its attributes and allow or disallow access to it.
  *
  * We listen on KernelEvents::CONTROLLER_ARGUMENTS event, once all arguments
  * have been computed so that they may serve in the future for attribute based

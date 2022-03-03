@@ -6,12 +6,6 @@ namespace MakinaCorpus\AccessControl\Tests\Mock;
 
 /**
  * @codeCoverageIgnore
- * @MakinaCorpus\AccessControl\AccessAllOrNothing()
- * @MakinaCorpus\AccessControl\AccessPermission("some permission")
- * @MakinaCorpus\AccessControl\AccessResource("foo", "bar")
- * @MakinaCorpus\AccessControl\AccessRole("some role")
- * @MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")
- * @UnrelatedAnnotation()
  */
 #[\MakinaCorpus\AccessControl\AccessAllOrNothing()]
 #[\MakinaCorpus\AccessControl\AccessPermission("some permission")]
@@ -20,14 +14,6 @@ namespace MakinaCorpus\AccessControl\Tests\Mock;
 #[\MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")]
 abstract class PolicyLoaderTestClass
 {
-    /**
-     * @MakinaCorpus\AccessControl\AccessAllOrNothing()
-     * @MakinaCorpus\AccessControl\AccessPermission("some permission")
-     * @MakinaCorpus\AccessControl\AccessResource("foo", "bar")
-     * @MakinaCorpus\AccessControl\AccessRole("some role")
-     * @MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")
-     * @UnrelatedAnnotation()
-     */
     #[\MakinaCorpus\AccessControl\AccessAllOrNothing()]
     #[\MakinaCorpus\AccessControl\AccessPermission("some permission")]
     #[\MakinaCorpus\AccessControl\AccessResource("foo", "bar")]
@@ -53,13 +39,5 @@ abstract class PolicyLoaderTestClass
 #[\MakinaCorpus\AccessControl\AccessRole("some role")]
 #[\MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")]
 function readPoliciesFromMe(): void
-{
-}
-
-/**
- * @Annotation
- * @codeCoverageIgnore
- */
-final class UnrelatedAnnotation
 {
 }

@@ -12,26 +12,15 @@ namespace MakinaCorpus\AccessControl;
  *
  * Usage:
  *   #[AccessDelegate(SomeOtherClass::class)]
- *
- * @Annotation
  */
 #[\Attribute]
 final class AccessDelegate implements AccessPolicy
 {
     private string $className;
 
-    public function __construct($className)
+    public function __construct(string $className)
     {
-        // Doctrine BC compat (is_array() call).
-        if (\is_array($className)) {
-            if (\is_array($className['value'])) {
-                $this->className = $className['value'][0];
-            } else {
-                $this->className = $className['value'];
-            }
-        } else {
-            $this->className = $className;
-        }
+        $this->className = $className;
     }
 
     public function getClassName(): string

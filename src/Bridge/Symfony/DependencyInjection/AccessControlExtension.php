@@ -13,7 +13,6 @@ use MakinaCorpus\AccessControl\Bridge\Symfony\AccessControl\UserSubjectLocator;
 use MakinaCorpus\AccessControl\Bridge\Symfony\EventDispatcher\AccessControlKernelEventSubscriber;
 use MakinaCorpus\AccessControl\PermissionChecker\ChainPermissionChecker;
 use MakinaCorpus\AccessControl\PermissionChecker\PermissionChecker;
-use MakinaCorpus\AccessControl\PolicyLoader\AnnotationPolicyLoader;
 use MakinaCorpus\AccessControl\PolicyLoader\AttributePolicyLoader;
 use MakinaCorpus\AccessControl\PolicyLoader\ChainPolicyLoader;
 use MakinaCorpus\AccessControl\PolicyLoader\PolicyLoader;
@@ -54,16 +53,6 @@ final class AccessControlExtension extends Extension
             $attributePolicyLoader->setClass(AttributePolicyLoader::class);
             $container->setDefinition(AttributePolicyLoader::class, $attributePolicyLoader);
             $policyLoaders[] = new Reference(AttributePolicyLoader::class);
-        }
-
-        if ($config['annotations']['enabled'] ?? false) {
-            $annotationPolicyLoader = new Definition();
-            $annotationPolicyLoader->setClass(AnnotationPolicyLoader::class);
-            $annotationPolicyLoader->setArguments([
-                new Reference('annotations.reader'),
-            ]);
-            $container->setDefinition(AnnotationPolicyLoader::class, $annotationPolicyLoader);
-            $policyLoaders[] = new Reference(AnnotationPolicyLoader::class);
         }
 
         $policyLoaderChain = new Definition();

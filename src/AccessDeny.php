@@ -11,26 +11,15 @@ namespace MakinaCorpus\AccessControl;
  *
  * Usage:
  *   #[AccessDeny]
- *
- * @Annotation
  */
 #[\Attribute]
 final class AccessDeny implements AccessPolicy
 {
     private ?string $reason = null;
 
-    public function __construct($reason = null)
+    public function __construct(?string $reason = null)
     {
-        // Doctrine BC compat (is_array() call).
-        if (\is_array($reason)) {
-            if (\is_array($reason['value'])) {
-                $this->reason = $reason['value'][0];
-            } else {
-                $this->reason = $reason['value'];
-            }
-        } else {
-            $this->reason = $reason;
-        }
+        $this->reason = $reason;
     }
 
     public function getReason(): ?string

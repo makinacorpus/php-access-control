@@ -20,11 +20,6 @@ final class AccessControlConfiguration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->arrayNode('annotations')
-                    ->children()
-                        ->booleanNode('enabled')->defaultFalse()->end()
-                    ->end()
-                ->end()
                 ->arrayNode('attributes')
                     ->children()
                         ->booleanNode('enabled')->defaultTrue()->end()

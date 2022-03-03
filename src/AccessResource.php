@@ -24,8 +24,6 @@ use MakinaCorpus\AccessControl\Expression\ValueAccessor;
  *
  * Usage:
  *   #[AccessResource(SomeClass::class, "somePropertyName")]
- *
- * @Annotation
  */
 #[\Attribute]
 final class AccessResource implements AccessPolicy
@@ -33,20 +31,10 @@ final class AccessResource implements AccessPolicy
     private string $resourceType;
     private string $resourceIdPropertyName;
 
-    public function __construct($resourceType, $resourceIdPropertyName = null)
+    public function __construct(string $type, string $prop)
     {
-        // Doctrine BC compat (is_array() call).
-        if (\is_array($resourceType)) {
-            if (\is_array($resourceType['value'])) {
-                $this->resourceType = $resourceType['value'][0];
-                $this->resourceIdPropertyName = $resourceType['value'][1] ?? null;
-            } else {
-                $this->resourceType = $resourceType['value'];
-            }
-        } else {
-            $this->resourceType = $resourceType;
-            $this->resourceIdPropertyName = $resourceIdPropertyName;
-        }
+        $this->resourceType = $type;
+        $this->resourceIdPropertyName = $prop;
     }
 
     public function getResourceType(): string
