@@ -125,17 +125,14 @@ final class AccessControlExtension extends Extension
         $containerServiceLocator->addTag('access_control.service_locator');
         $container->setDefinition(ContainerServiceLocator::class, $containerServiceLocator);
 
-        // @todo register this only if configuration requires it.
-        if (false) {
+        if ($config['symfony_security']['user_subject_locator']['enabled'] ?? false) {
             $userSubjectLocator = new Definition();
             $userSubjectLocator->setClass(UserSubjectLocator::class);
             $userSubjectLocator->setArguments([new Reference('security.helper')]);
             $userSubjectLocator->addTag('access_control.subject_locator');
             $container->setDefinition(UserSubjectLocator::class, $userSubjectLocator);
         }
-
-        // @todo register this only if configuration requires it.
-        if (false) {
+        if ($config['symfony_security']['user_role_checker']['enabled'] ?? false) {
             $userRoleChecker = new Definition();
             $userRoleChecker->setClass(UserRoleChecker::class);
             $userRoleChecker->addMethodCall('setRoleHierarchy', [new Reference('security.role_hierarchy')]);
