@@ -55,14 +55,14 @@ final class AccessControlKernelEventSubscriber implements EventSubscriberInterfa
             // Controller is an instance of something, it could be a closure
             // or a callable class with an __invoke() method, let see is this
             // class has policies.
-            if (!$this->authorization->isGranted($controller, ...$event->getArguments())) {
+            if (!$this->authorization->isGranted($controller, $event->getArguments())) {
                 throw new AccessDeniedException();
             }
         } else if (\is_string($controller)) {
             // A callable string is probably a function name, let's just see
             // if that works.
             // @todo It could be something like "ClassName::method" as well.
-            if (!$this->authorization->isGranted($controller, ...$event->getArguments())) {
+            if (!$this->authorization->isGranted($controller, $event->getArguments())) {
                 throw new AccessDeniedException();
             }
         } else if (\is_array($controller) && \count($controller) === 2) {
