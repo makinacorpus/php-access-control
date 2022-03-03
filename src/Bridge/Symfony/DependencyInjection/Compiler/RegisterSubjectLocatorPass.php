@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MakinaCorpus\AccessControl\Bridge\Symfony\DependencyInjection\Compiler;
 
-use MakinaCorpus\AccessControl\Subject\ChainSubjectLocator;
-use MakinaCorpus\AccessControl\Subject\SubjectLocator;
+use MakinaCorpus\AccessControl\SubjectLocator\ChainSubjectLocator;
+use MakinaCorpus\AccessControl\SubjectLocator\SubjectLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -21,7 +21,7 @@ final class RegisterSubjectLocatorPass implements CompilerPassInterface
         $chain = $container->getDefinition(ChainSubjectLocator::class);
         $services = [];
 
-        foreach (\array_keys($container->findTaggedServiceIds('access_control.subject', true)) as $id) {
+        foreach (\array_keys($container->findTaggedServiceIds('access_control.subject_locator', true)) as $id) {
             $definition = $container->getDefinition($id);
             $class = $definition->getClass();
 

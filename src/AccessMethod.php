@@ -12,7 +12,7 @@ namespace MakinaCorpus\AccessControl;
  *
  * @Annotation
  */
-#[Attribute]
+#[\Attribute(\Attribute::IS_REPEATABLE | \Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::TARGET_FUNCTION)]
 final class AccessMethod implements AccessPolicy
 {
     private string $method;
@@ -20,11 +20,27 @@ final class AccessMethod implements AccessPolicy
     public function __construct($method)
     {
         // Doctrine BC compat (is_array() call).
-        $this->method = (string) \is_array($method) ? $method['value'] : $method;
+        if (\is_array($method)) {
+            if (\is_array($method['value'])) {
+                $this->method = $method['value'][0];
+            } else {
+                $this->method = $method['value'];
+            }
+        } else {
+            $this->method = $method;
+        }
     }
 
     public function getMethod(): string
     {
         return $this->method;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function toString(): string
+    {
+        return 'AccessMethod(' . $this->method . ')';
     }
 }

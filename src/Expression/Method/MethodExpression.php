@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace MakinaCorpus\AccessControl\Expression\Method;
 
+use MakinaCorpus\AccessControl\Error\AccessRuntimeError;
 use MakinaCorpus\AccessControl\Expression\Expression;
+use MakinaCorpus\AccessControl\Expression\ExpressionArgument;
+use MakinaCorpus\AccessControl\Expression\ValueAccessor;
 
 final class MethodExpression implements Expression
 {
     private string $methodName;
-    /** @var string[] */
-    private array $arguments = [];
     private ?string $serviceName = null;
+    /** @var ExpressionArgument */
+    private array $arguments = [];
 
-    public function __construct(string $methodName, array $arguments, ?string $serviceName = null)
+    public function __construct(string $methodName, ?string $serviceName = null, array $arguments = [])
     {
         $this->methodName = $methodName;
         $this->arguments = $arguments;
@@ -25,21 +28,59 @@ final class MethodExpression implements Expression
      */
     public function execute(array $arguments): bool
     {
-        // Passed arguments are a key-value hashmap whose keys are arguments
-        // name, we need to re-order those to match the method call argument
-        // names list.
-        // @todo create and use a MethodExecutor here directly.
-        $executor = new MethodExecutor();
+        throw new \Exception("Implemente moi.");
+    }
 
-        if ($this->serviceName) {
-            // @todo et comment on récupère le service?
-            // $executor->callServiceMethod($this->serviceName, $this->methodName, $arguments);
+    /**
+     * {@inheritdoc}
+     */
+    public function mapArgumentsFromContext(array $context): array
+    {
+        foreach ($this->arguments as $argument) {
+            \assert($argument instanceof ExpressionArgument);
+
+            if ($argument->context && \array_key_exists($argument->context, $context)) {
+                if (\array_key_exists($argument->name, $context)) {
+                    throw new AccessRuntimeError(\sprintf(
+                        "Argument $%s cannot be overriden from context argument '%s'",
+                        $argument->name,
+                        $argument->context
+                    ));
+                }
+                $context[$argument->name] = $context[$argument->context];
+            }
         }
 
-        // @todo et sur quoi on appelle la méthode?
-        // return $executor->callcaMethod($this->methodName, $arguments);
+        if ($argument->property) {
+            $object = $context[$argument->name];
+            if (!\is_object($object)) {
+                throw new AccessRuntimeError(\sprintf(
+                    "Argument from context $%s is not an object, cannot fetch property '%s'",
+                    $argument->name,
+                    $argument->property
+                ));
+            }
 
-        throw new \Exception("Implemente moi.");
+            $context[$argument->name] = ValueAccessor::getValueFrom($object, $argument->property);
+        }
+
+        return $context;
+    }
+
+    /**
+     * Get service name.
+     */
+    public function getServiceName(): ?string
+    {
+        return $this->serviceName;
+    }
+
+    /**
+     * Get service method name.
+     */
+    public function getServiceMethodName(): string
+    {
+        return $this->methodName;
     }
 
     /**
@@ -56,8 +97,8 @@ final class MethodExpression implements Expression
     public function toString(): string
     {
         if ($this->serviceName) {
-            return \sprintf("%s.%s(%s)", $this->serviceName, $this->methodName, \implode(', ', $this->parameters));
+            return \sprintf("%s.%s(%s)", $this->serviceName, $this->methodName, \implode(', ', $this->arguments));
         }
-        return \sprintf("%s(%s)", $this->methodName, \implode(', ', $this->parameters));
+        return \sprintf("%s(%s)", $this->methodName, \implode(', ', $this->arguments));
     }
 }

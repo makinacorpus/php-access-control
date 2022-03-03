@@ -18,11 +18,19 @@ interface Expression
     /**
      * Get required arguments.
      *
-     * @return string
-     *   Argument names found in expression that are supposed to be passed
-     *   as arguments for executing.
+     * @return ExpressionArgument[]
      */
     public function getArguments(): array;
+
+    /**
+     * From the given arbitrary key-value pairs (context values) convert
+     * to an array whose keys are those from the arguments of this instance.
+     *
+     * Values from context which are not defined in arguments will be kept
+     * in returned array, so that potential optional extra method parameters
+     * will be kept and send anyway to the later executed method.
+     */
+    public function mapArgumentsFromContext(array $context): array;
 
     /**
      * Display expression as string.

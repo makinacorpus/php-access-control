@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MakinaCorpus\AccessControl\Bridge\Symfony\DependencyInjection\Compiler;
 
-use MakinaCorpus\AccessControl\Permission\ChainPermissionChecker;
-use MakinaCorpus\AccessControl\Permission\PermissionChecker;
+use MakinaCorpus\AccessControl\PermissionChecker\ChainPermissionChecker;
+use MakinaCorpus\AccessControl\PermissionChecker\PermissionChecker;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;

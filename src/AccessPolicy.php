@@ -9,4 +9,8 @@ namespace MakinaCorpus\AccessControl;
  */
 interface AccessPolicy
 {
+    /**
+     * Return a string representation for logs.
+     */
+    public function toString(): string;
 }

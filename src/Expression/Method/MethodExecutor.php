@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace MakinaCorpus\AccessControl\Expression\Method;
 
-use MakinaCorpus\AccessControl\AccessConfigurationError;
+use MakinaCorpus\AccessControl\Error\AccessConfigurationError;
+use MakinaCorpus\AccessControl\Error\AccessRuntimeError;
+use MakinaCorpus\AccessControl\Expression\ExpressionArgumentChoices;
 
 final class MethodExecutor
 {
@@ -17,20 +19,25 @@ final class MethodExecutor
      *   - a root namespace function name,
      *   - a namespaced function name fully qualified name.
      *
+     * @param array $parameters
+     *   Key-value pairs of arguments to pass to function.
+     *
      * @return mixed
      *   Whatever the method returned.
      */
-    public function callFunction(string $functionName, array $parameters)
+    public function callCallback(callable $callback, array $parameters)
     {
+        $callback = \Closure::fromCallable($callback);
+
         try {
-            $reflectionFunction = new \ReflectionFunction($functionName);
+            $reflectionFunction = new \ReflectionFunction($callback);
         } catch (\ReflectionException $e) {
-            throw new AccessConfigurationError(\sprintf("'%s' function does not exist ", $functionName), 0, $e);
+            throw new AccessConfigurationError("Could not introspect provided <callback>", 0, $e);
         }
 
         return $this->call(
-            $functionName,
-            $functionName,
+            $reflectionFunction->getName() . '()',
+            $callback,
             $reflectionFunction,
             $parameters
         );
@@ -40,6 +47,9 @@ final class MethodExecutor
      * Find and call resource instance method.
      *
      * Method must be a method name on this object.
+     *
+     * @param array $parameters
+     *   Key-value pairs of arguments to pass to function.
      *
      * @return mixed
      *   Whatever the method returned.
@@ -80,24 +90,10 @@ final class MethodExecutor
     }
 
     /**
-     * Find and call service method.
-     *
-     * Service can be either of:
-     *   - an arbitrary registered name associated with an object instance,
-     *   - a fully qualified class name associated with an object instance.
-     *
-     * Method must be a method name on this object.
-     *
-     * @return mixed
-     *   Whatever the method returned.
-     */
-    public function callServiceMethod(string $service, string $methodName, array $parameters)
-    {
-        throw new \Exception("Not implemented yet.");
-    }
-
-    /**
      * Validate incoming parameters and execute.
+     *
+     * @param array $parameters
+     *   Key-value pairs of arguments to pass to function.
      */
     private function call(
         string $humanName,
@@ -105,52 +101,89 @@ final class MethodExecutor
         \ReflectionFunctionAbstract $reflectionFunction,
         array $parameters
     ) {
-        // Validate parameter types.
-        $parameters = \array_values($parameters);
-        $methodParameters = \array_values($reflectionFunction->getParameters());
-
-        foreach ($methodParameters as $index => $reflectionParameter) {
+        $args = [];
+        foreach ($reflectionFunction->getParameters() as $reflectionParameter) {
             \assert($reflectionParameter instanceof \ReflectionParameter);
 
-            if (isset($parameters[$index])) {
-                // Check type compatibility.
-                if ($reflectionParameter->hasType()) {
-                    $reflectionType = $reflectionParameter->getType();
+            $parameterName = $reflectionParameter->getName();
+            $allowedTypes = $this->getAllowedTypes($reflectionParameter);
 
-                    $typeMatch = false;
-                    $inputType = $this->getType($parameters[$index]);
-                    $expected = (string) $reflectionType;
-
-                    if ($reflectionType instanceof \ReflectionUnionType) {
-                        foreach ($reflectionType->getTypes() as $candidate) {
-                            \assert($candidate instanceof \ReflectionNamedType);
-                            if ($candidate == $inputType) {
-                                $typeMatch = true;
+            if (\array_key_exists($parameterName, $parameters)) {
+                $value = $parameters[$parameterName];
+                if (!$allowedTypes) {
+                    if ($value instanceof ExpressionArgumentChoices) {
+                        $args[$parameterName] = $value->find(null);
+                    } else {
+                        $args[$parameterName] = $value;
+                    }
+                } else {
+                    if ($value instanceof ExpressionArgumentChoices) {
+                        try {
+                            $args[$parameterName] = $value->find($allowedTypes);
+                        } catch (AccessRuntimeError $e) {
+                            throw new AccessRuntimeError(\sprintf(
+                                "Cannot call %s, type mismatch for parameter \$%s, expected one of '%s', could not find any value in context.",
+                                $humanName, $parameterName, \implode("', '", $allowedTypes)
+                            ));
+                        }
+                    } else {
+                        $found = false;
+                        $valueType = $this->getType($value);
+                        foreach ($allowedTypes as $allowedType) {
+                            if ($valueType === $allowedType || \is_subclass_of($valueType, $allowedType)) {
+                                $args[$parameterName] = $value;
+                                $found = true;
+                                break;
                             }
                         }
-                    } else if ($inputType === (string) $reflectionType) {
-                        $typeMatch = true;
-                    }
-                    if (!$typeMatch) {
-                        throw new AccessConfigurationError(\sprintf(
-                            "Cannot call %s, type mismatch for parameter #%d (\$%s), expected '%s', '%s' given",
-                            $humanName, $index + 1, $reflectionParameter->getName(), $expected, $inputType
-                        ));
+                        if (!$found) {
+                            throw new AccessRuntimeError(\sprintf(
+                                "Cannot call %s, type mismatch for parameter \$%s, expected one of '%s', '%s' given.",
+                                $humanName, $parameterName, \implode("', '", $allowedTypes), $valueType
+                            ));
+                        }
                     }
                 }
-            } elseif ($reflectionParameter->isDefaultValueAvailable()) {
-                $parameters[$index] = $reflectionParameter->getDefaultValue();
+            } else if ($reflectionParameter->isDefaultValueAvailable()) {
+                $args[$parameterName] = $reflectionParameter->getDefaultValue();
             } else if ($reflectionParameter->allowsNull()) {
-                $parameters[$index] = null;
+                $args[$parameterName] = null;
             } else {
-                throw new AccessConfigurationError(\sprintf(
-                    "Cannot call %s, missing parameter #%d (\$%s)",
-                    $humanName, $index + 1, $reflectionParameter->getName()
+                throw new AccessRuntimeError(\sprintf(
+                    "Cannot call %s, missing parameter \$%s.",
+                    $humanName, $parameterName
                 ));
             }
         }
 
-        return ($function)(...$parameters);
+        return ($function)(...$args);
+    }
+
+    private function getAllowedTypes(\ReflectionParameter $reflectionParameter): array
+    {
+        if ($reflectionParameter->hasType()) {
+            $reflectionType = $reflectionParameter->getType();
+
+            if ($reflectionType instanceof \ReflectionUnionType) {
+                $ret = [];
+                foreach ($reflectionType->getTypes() as $candidate) {
+                    \assert($candidate instanceof \ReflectionNamedType);
+                    if ('mixed' === $candidate) {
+                        return [];
+                    }
+                    $ret[] = $candidate->getName();
+                }
+
+                return $ret;
+
+            } else {
+                \assert($reflectionType instanceof \ReflectionNamedType);
+
+                return [$reflectionType->getName()];
+            }
+        }
+
+        return [];
     }
 
     /**

@@ -12,19 +12,35 @@ namespace MakinaCorpus\AccessControl;
  *
  * @Annotation
  */
-#[Attribute]
+#[\Attribute(\Attribute::IS_REPEATABLE | \Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::TARGET_FUNCTION)]
 final class AccessService implements AccessPolicy
 {
-    private string $method;
+    private string $expression;
 
-    public function __construct($method)
+    public function __construct($expression)
     {
         // Doctrine BC compat (is_array() call).
-        $this->method = (string) \is_array($method) ? $method['value'] : $method;
+        if (\is_array($expression)) {
+            if (\is_array($expression['value'])) {
+                $this->expression = $expression['value'][0];
+            } else {
+                $this->expression = $expression['value'];
+            }
+        } else {
+            $this->expression = $expression;
+        }
     }
 
-    public function getMethod(): string
+    public function getExpression(): string
     {
-        return $this->method;
+        return $this->expression;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function toString(): string
+    {
+        return 'AccessService(' . $this->expression . ')';
     }
 }

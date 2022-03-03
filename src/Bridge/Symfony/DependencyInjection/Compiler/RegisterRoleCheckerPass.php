@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MakinaCorpus\AccessControl\Bridge\Symfony\DependencyInjection\Compiler;
 
-use MakinaCorpus\AccessControl\Role\ChainRoleChecker;
-use MakinaCorpus\AccessControl\Role\RoleChecker;
+use MakinaCorpus\AccessControl\RoleChecker\ChainRoleChecker;
+use MakinaCorpus\AccessControl\RoleChecker\RoleChecker;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;

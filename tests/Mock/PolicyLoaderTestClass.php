@@ -5,30 +5,34 @@ declare(strict_types=1);
 namespace MakinaCorpus\AccessControl\Tests\Mock;
 
 /**
- * @UnrelatedAnnotation()
- * @MakinaCorpus\AccessControl\AccessAllOrNothing()
- * @MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")
- * @MakinaCorpus\AccessControl\AccessPermission("some permission")
- * @MakinaCorpus\AccessControl\AccessRole("some role")
  * @codeCoverageIgnore
+ * @MakinaCorpus\AccessControl\AccessAllOrNothing()
+ * @MakinaCorpus\AccessControl\AccessPermission("some permission")
+ * @MakinaCorpus\AccessControl\AccessResource("foo", "bar")
+ * @MakinaCorpus\AccessControl\AccessRole("some role")
+ * @MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")
+ * @UnrelatedAnnotation()
  */
-#[MakinaCorpus\AccessControl\AccessAllOrNothing()]
-#[MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")]
-#[MakinaCorpus\AccessControl\AccessPermission("some permission")]
-#[MakinaCorpus\AccessControl\AccessRole("some role")]
+#[\MakinaCorpus\AccessControl\AccessAllOrNothing()]
+#[\MakinaCorpus\AccessControl\AccessPermission("some permission")]
+#[\MakinaCorpus\AccessControl\AccessResource("foo", "bar")]
+#[\MakinaCorpus\AccessControl\AccessRole("some role")]
+#[\MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")]
 abstract class PolicyLoaderTestClass
 {
     /**
-     * @UnrelatedAnnotation()
      * @MakinaCorpus\AccessControl\AccessAllOrNothing()
-     * @MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")
      * @MakinaCorpus\AccessControl\AccessPermission("some permission")
+     * @MakinaCorpus\AccessControl\AccessResource("foo", "bar")
      * @MakinaCorpus\AccessControl\AccessRole("some role")
+     * @MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")
+     * @UnrelatedAnnotation()
      */
-    #[MakinaCorpus\AccessControl\AccessAllOrNothing()]
-    #[MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")]
-    #[MakinaCorpus\AccessControl\AccessPermission("some permission")]
-    #[MakinaCorpus\AccessControl\AccessRole("some role")]
+    #[\MakinaCorpus\AccessControl\AccessAllOrNothing()]
+    #[\MakinaCorpus\AccessControl\AccessPermission("some permission")]
+    #[\MakinaCorpus\AccessControl\AccessResource("foo", "bar")]
+    #[\MakinaCorpus\AccessControl\AccessRole("some role")]
+    #[\MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")]
     public function normalMethod(): void
     {
     }
@@ -43,10 +47,11 @@ abstract class PolicyLoaderTestClass
 /**
  * @codeCoverageIgnore
  */
-#[MakinaCorpus\AccessControl\AccessAllOrNothing()]
-#[MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")]
-#[MakinaCorpus\AccessControl\AccessPermission("some permission")]
-#[MakinaCorpus\AccessControl\AccessRole("some role")]
+#[\MakinaCorpus\AccessControl\AccessAllOrNothing()]
+#[\MakinaCorpus\AccessControl\AccessPermission("some permission")]
+#[\MakinaCorpus\AccessControl\AccessResource("foo", "bar")]
+#[\MakinaCorpus\AccessControl\AccessRole("some role")]
+#[\MakinaCorpus\AccessControl\AccessService("SomeService.someMethod")]
 function readPoliciesFromMe(): void
 {
 }

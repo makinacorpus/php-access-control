@@ -12,7 +12,7 @@ namespace MakinaCorpus\AccessControl;
  *
  * @Annotation
  */
-#[Attribute]
+#[\Attribute(\Attribute::IS_REPEATABLE | \Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::TARGET_FUNCTION)]
 final class AccessRole implements AccessPolicy
 {
     private string $role;
@@ -20,11 +20,27 @@ final class AccessRole implements AccessPolicy
     public function __construct($role)
     {
         // Doctrine BC compat (is_array() call).
-        $this->role = (string) \is_array($role) ? $role['value'] : $role;
+        if (\is_array($role)) {
+            if (\is_array($role['value'])) {
+                $this->role = $role['value'][0];
+            } else {
+                $this->role = $role['value'];
+            }
+        } else {
+            $this->role = $role;
+        }
     }
 
     public function getRole(): string
     {
         return $this->role;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function toString(): string
+    {
+        return 'AccessRole(' . $this->role . ')';
     }
 }

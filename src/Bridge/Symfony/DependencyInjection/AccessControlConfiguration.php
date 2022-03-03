@@ -15,53 +15,28 @@ final class AccessControlConfiguration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder('access_control');
-        /*
+
         $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->children()
-                ->arrayNode('runner')
-                    ->normalizeKeys(true)
-                    ->prototype('array')
-                        ->children()
-                            ->booleanNode('autocommit')
-                                ->info("Set autocommit, for now only ('doctrine' driver only)")
-                                ->defaultFalse()
-                            ->end()
-                            ->scalarNode('doctrine_connection')
-                                ->info("Doctrine connection to use ('doctrine' driver only)")
-                                ->defaultNull()
-                            ->end()
-                            ->scalarNode('url')
-                                ->info("Database URL")
-                                ->defaultNull()
-                            ->end()
-                            ->scalarNode('driver')
-                                ->info('Driver to use')
-                                ->defaultNull()
-                            ->end()
-                            ->enumNode('metadata_cache')
-                                ->info("Enable metadata cache, 'doctrine' and 'pdo-*' drivers should use this")
-                                ->values(['array', 'apcu', 'php'])
-                                ->defaultNull()
-                            ->end()
-                            ->scalarNode('metadata_cache_prefix')
-                                ->defaultNull()
-                            ->end()
-                            ->scalarNode('metadata_cache_php_filename')
-                                ->defaultNull()
-                            ->end()
-                        ->end()
+                ->arrayNode('annotations')
+                    ->children()
+                        ->booleanNode('enabled')->defaultFalse()->end()
                     ->end()
                 ->end()
-                ->arrayNode('query')
+                ->arrayNode('attributes')
                     ->children()
                         ->booleanNode('enabled')->defaultTrue()->end()
                     ->end()
                 ->end()
+                ->arrayNode('debug')
+                    ->children()
+                        ->booleanNode('enabled')->defaultNull()->end()
+                    ->end()
+                ->end()
             ->end()
         ;
-         */
 
         return $treeBuilder;
     }

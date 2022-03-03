@@ -59,6 +59,8 @@ whenever it fits with your input/output.
 
 ## Using service method
 
+### Use-case
+
 Let's dive into an exemple, assume you have a bus command:
 
 ```php
@@ -77,9 +79,9 @@ namespace MyVendor\MyApp\SomeBoundingContext\AccessControl;
 
 class ThatService
 {
-    public function canDoThat(UserInterface $subject, $command)
+    public function canDoThat(UserInterface $subject, $resource)
     {
-        if ($command->issuer !== $subject->getUsername()) {
+        if ($resource->issuer !== $subject->getUsername()) {
             return false;
         }
         return true;
@@ -119,6 +121,101 @@ class MyBusAccessDecorator implements MyBus
     }
 }
 ```
+
+### Parameter explicit naming
+
+If your method arguments are not the same as the context values, you can write
+explicitly named arguments, as such:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\AccessControl;
+
+class ThatService
+{
+    public function canDoThat(UserInterface $myBusinessUser, $myDomainEntity)
+    {
+        if ($myDomainEntity->issuer !== $myBusinessUser->getUsername()) {
+            return false;
+        }
+        return true;
+    }
+}
+```
+
+Then:
+
+```php
+#[AccessService("ThatService.canDoThat(myBusinessUser: subject, myDomainEntity: resource)")]
+class DoThisOrThatCommand
+{
+}
+```
+
+### Resource property as parameter
+
+Now consider that you wanted to fetch a command property instead:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\AccessControl;
+
+class ThatService
+{
+    public function canDoThat(UserInterface $myBusinessUser, $resource)
+    {
+        if ($someId !== $resource) {
+            return false;
+        }
+        return true;
+    }
+}
+```
+
+Then:
+
+```php
+#[AccessService("ThatService.canDoThat(myBusinessUser: subject, myDomainEntity: resource.entityId)")]
+class DoThisOrThatCommand
+{
+    public $entityId;
+}
+```
+
+Note that may also fetch properties on any other object than the resource,
+consider the following access method signature:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\AccessControl;
+
+class ThatService
+{
+    public function canDoThat(string $userId, $resource)
+    {
+        if ($userId !== $resource->userId) {
+            return false;
+        }
+        return true;
+    }
+}
+```
+
+Then you could combine with explicit parameter naming and write:
+
+```php
+#[AccessService("ThatService.canDoThat(userId: subject.id, resource)")]
+class DoThisOrThatCommand
+{
+}
+```
+
+Property name (following the dot) can be either one of:
+
+ - a public, protected or private property name,
+ - a public, protected, private method name,
+ - if a method, it must have no parameters, or only optional parameters.
+
+If the property or method does not exist, `null` will be returned silently.
+
+If the method cannot be called, an exception will be raised.
 
 ## In all cases
 
@@ -164,6 +261,113 @@ such as `"canDoThat()"` then the method must be either registered and identified
 
 You can also use function FQDN such as `MyVendor\SomeNamespace\foo()`.
 
+# Resource locator
+
+Consider that you are working in an application with a command bus and
+wishes to do access checks on a dedicated resource which is not the
+command itself.
+
+Having the following entity class and dedicated repository in your
+dependency injection container:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\Model;
+
+class SomeEntity
+{
+    public int $id;
+    public string $name;
+}
+
+interface SomeEntityRepository
+{
+    /* @throws \DomainException */
+    public function find(int $id): SomeEntity;
+}
+```
+
+And the following command sent into the bus:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\Command;
+
+class UpdateSomeEntity
+{
+    public int $entityId;
+    public string $newName;
+}
+```
+
+You probably want to check access at the bus level, but want to provide
+the entity as being the resource on which the access policies will apply
+and not the command itself.
+
+Start by writing a resource locator, as such:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\ResourceLocator;
+
+use MakinaCorpus\AccessControl\ResourceLocator\ResourceLocator;
+use MyVendor\MyApp\SomeBoundingContext\Model\SomeEntity;
+use MyVendor\MyApp\SomeBoundingContext\Model\SomeEntityRepository;
+
+class SomeResourceLocator implements ResourceLocator
+{
+    private SomeEntityRepository $repository;
+
+    public function __construct(SomeEntityRepository $repository)
+    {
+        $this->repository = $repository;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function loadResource(string $resourceType, $resourceId)
+    {
+        try {
+            if (SomeEntity::class === $resourceType && \is_int($resourceId) {
+                return $this->repository->find($resourceId);
+            }
+        } catch (\DomainException $e) {
+            // Or let the exception pass, but it violates the contract.
+        }
+        return null;
+    }
+}
+```
+
+Then register it into the access control component configuration (considering
+in this sample that you are using the Symfony container):
+
+```yaml
+services:
+    MyVendor\MyApp\SomeBoundingContext\ResourceLocator\SomeResourceLocator:
+        tags: ['access_control.resource_locator']
+```
+
+All you need for the authorization checker to find the correct resource for
+access checks is to add the `AccessResource` attribute on your command:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\Command;
+
+use MakinaCorpus\AccessControl\AccessResource;
+use MyVendor\MyApp\SomeBoundingContext\Model\SomeEntity;
+
+#[AccessResource(SomeEntity::class, "entityId")]
+#[AccessService(ThatService.canDoThat(resource))]
+class UpdateSomeEntity
+{
+    public int $entityId;
+    // ... other properties.
+}
+```
+
+This literally means: "fetch the `SomeClass` entity whose identifier can
+be found in my `$entityId` property, then use the `ThatService.canDoThat()`
+method passing the loaded entity as first parameter".
+
 # Defining more than one attribute
 
 When you define multiple attributes, checks will be done in order. Checks
@@ -199,6 +403,45 @@ class DoThisOrThatCommand
 ```
 
 In this case, all attributes need to say yes for it to pass.
+
+# Access delegation
+
+Access delegation is a specific access policy that delegates the access checks
+to another existing PHP class within the same project.
+
+Consider you have the following bus command:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\Command;
+
+#[AccessRole("ROLE_ADMIN")]
+class DoThisOrThatCommand
+{
+}
+```
+
+And you want to apply the same policy on a controller method:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\Controller;
+
+use MyVendor\MyApp\SomeBoundingContext\Command\DoThisOrThatCommand
+
+class SomeController
+{
+    #[AccessDelegate(DoThisOrThatCommand::class)]
+    public function doThisOrDoThatAction(Request $request, /* ... */): Response
+    {
+    }
+}
+```
+
+And you are good to do.
+
+When using this, **the delegating object will be used as the resource**
+**instead of the class you have delegated too**. In order to assess this
+problem, use an explicit `AccessResource` attribute on the delegated
+class to trigger the `ResourceLocator` resource loader.
 
 # What this API is *not*
 
@@ -236,25 +479,33 @@ If you are using Symfony, the `Security` component will be used transparently
 and will give you the current `UserInterface` if found. In the absence of
 subject, access checks that requires it will fail and deny.
 
-## Subject permission checker
+## Subject permission checker (optional)
 
 There is no generic permission based access checks in Symfony, so you will
 need to implement your own.
 
 Implementing permission based access checks is optional.
 
-## Subject role checker
+## Resource locator (optional)
 
-If you are using Symfony, roles will be transparently han^dled using the
+If you wish to use the resource loader and access resource attribute, you
+need to implement your own resource locators.
+
+Using the resource locator related attributes is optional.
+
+## Subject role checker (optional)
+
+If you are using Symfony, roles will be transparently handled using the
 `Security` component.
 
 Implementing role based access checks is optional.
 
-## Services methods
+## Services methods (optional)
 
-All you need is to implement services with methods, and register those
-services into the `AuthorizationServiceRegistry`, this is transparent when
-using the Symfony framework.
+For using service methods, you need to register your services into the
+Symfony container, and tag them using the `access_control.service` tag.
+
+Finding them will be delegated to the `ContainerServiceLocator` implementation.
 
 # Note about PHP 8 attributes
 
@@ -262,14 +513,3 @@ All attributes class can also be used as Doctrine annotations transparently.
 
 When using it throught the Symfony bundle, annotations reader will be
 properly configured if registered in the Symfony container.
-
-# Todo list
-
- - Introduce an explicit context class for calling isGranted*() method.
- - When using the isGrantedMethod(), pass method arguments along with their
-   names to the argument resolver, throught the context. This allows to
-   transparently resolved controller action arguments as variables in
-   access checks, for example.
- - Implement the service resolver.
- - Implement a custom policy handler interface, allowing applications
-   using us to develop their own policies.

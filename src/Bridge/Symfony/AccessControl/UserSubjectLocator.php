@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace MakinaCorpus\AccessControl\Bridge\Symfony\AccessControl;
 
-use MakinaCorpus\AccessControl\Subject\SubjectLocator;
+use MakinaCorpus\AccessControl\SubjectLocator\SubjectLocator;
 use Symfony\Component\Security\Core\Security;
 
+/**
+ * Uses symfony/security's UserInterface tied to the incoming request as subject.
+ */
 final class UserSubjectLocator implements SubjectLocator
 {
     private Security $security;
@@ -19,8 +22,10 @@ final class UserSubjectLocator implements SubjectLocator
     /**
      * {@inheritdoc}
      */
-    public function findSubject()
+    public function findSubject(): iterable
     {
-        return $this->security->getUser();
+        if ($user = $this->security->getUser()) {
+            yield $user;
+        }
     }
 }

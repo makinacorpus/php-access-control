@@ -12,12 +12,11 @@ interface Authorization
      * @param mixed $resource
      *   If string, then consider it's a function name.
      *   If object, then attempt find policies names over it.
-     * @param mixed ...$parameters
-     *   Additional parameters, behavior at the discretion of policies.
-     *   Those parameters are not named, and will be append in order to any
-     *   method call involved with policies.
+     * @param array $context
+     *   Key-value pairs of contextual values. For a controller, for example,
+     *   it will be its resolved arguments values with names.
      */
-    public function isGranted($resource, ...$parameters): bool;
+    public function isGranted($resource, array $context = []): bool;
 
     /**
      * Alias of isGranted() working on a class name and method name
@@ -26,10 +25,9 @@ interface Authorization
      * @param string|object $className
      * @param string $methodName
      *   Method name on the given class or object.
-     * @param mixed ...$parameters
-     *   Additional parameters, behavior at the discretion of policies.
-     *   Those parameters are not named, and will be append in order to any
-     *   method call involved with policies.
+     * @param array $context
+     *   Key-value pairs of contextual values. For a controller, for example,
+     *   it will be its resolved arguments values with names.
      */
-    public function isMethodGranted($object, string $methodName, ...$parameters): bool;
+    public function isMethodGranted($object, string $methodName, array $context = []): bool;
 }

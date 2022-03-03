@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MakinaCorpus\AccessControl\Expression;
+namespace MakinaCorpus\AccessControl\Expression\Method;
 
-use MakinaCorpus\AccessControl\AccessConfigurationError;
+use MakinaCorpus\AccessControl\Error\AccessConfigurationError;
+use MakinaCorpus\AccessControl\Expression\Expression;
+use MakinaCorpus\AccessControl\Expression\ExpressionArgument;
+use MakinaCorpus\AccessControl\Expression\ExpressionParser;
 
 /**
  * Implementation of ExpressionParser that only handles object method call.
@@ -39,25 +42,73 @@ final class MethodExpressionParser implements ExpressionParser
         // Match parameters.
         $paramString = \trim($funcMatch[2]);
         if (!empty($paramString)) {
-            $parameters = \array_map(fn ($value) => $this->validateMethodParameter($value), \explode(',', $paramString));
+            $parameters = \array_map(fn ($value) => $this->validateMethodParameterExpression($value), \explode(',', $paramString));
         }
 
-        return new MethodExpression($methodName, $parameters, $serviceName);
+        return new MethodExpression($methodName, $serviceName, $parameters);
     }
 
-    private function validateMethodParameter(string $value): string
+    private function validateMethodParameterExpression(string $value): ExpressionArgument
     {
-        $ret = \trim($value);
-        if (empty($ret)) {
-            throw new AccessConfigurationError("Invalid service method expression: empty parameter name");
+        $name = $context = $property = null;
+
+        if (false !== ($pos = \strpos($value, ':'))) {
+            $name = $this->validateMethodParameterName(
+                \substr($value, 0, $pos)
+            );
+            list ($context, $property) = $this->validateMethodParameterValue(
+                \substr($value, $pos + 1)
+            );
+        } else {
+            list ($name, $property) = $this->validateMethodParameterValue(
+                $value
+            );
         }
-        if (false !== \strpos($ret, ' ')) {
-            throw new AccessConfigurationError(\sprintf("Invalid service method expression: missing coma between: %s", $ret));
+
+        return new ExpressionArgument($name, $context, $property);
+    }
+
+    /**
+     * Validate expression such as VALUE_NAME
+     */
+    private function validateMethodParameterName(string $value): string
+    {
+        $value = \trim($value);
+
+        if (empty($value)) {
+            throw new AccessConfigurationError("Empty parameter name");
         }
-        if (!\preg_match('/^[a-zA-Z0-9_]+$/', $ret)) {
-            throw new AccessConfigurationError(\sprintf("Invalid service method expression: invalid parameter name: %s", $ret));
+        if (!\preg_match('/^[a-zA-Z0-9_]+$/', $value)) {
+            throw new AccessConfigurationError(\sprintf("Invalid parameter name expression: %s", $value));
         }
-        return $ret;
+
+        return $value;
+    }
+
+    /**
+     * Validate expression such as VALUE_NAME[.PROPERTY_NAME]
+     */
+    private function validateMethodParameterValue(string $value): array
+    {
+        $value = \trim($value);
+
+        if (false !== ($pos = \strpos($value, '.'))) {
+            return [
+                $this->validateMethodParameterName(
+                    \substr($value, 0, $pos)
+                ),
+                $this->validateMethodParameterName(
+                    \substr($value, $pos + 1)
+                ),
+            ];
+        } else{
+            return [
+                $this->validateMethodParameterName(
+                    $value
+                ),
+                null,
+            ];
+        }
     }
 
     private function validateMethodMessage(): string

@@ -12,7 +12,14 @@ namespace MakinaCorpus\AccessControl;
  *
  * @Annotation
  */
-#[Attribute]
+#[\Attribute]
 final class AccessAllOrNothing implements AccessPolicy
 {
+    /**
+     * {@inheritdoc}
+     */
+    public function toString(): string
+    {
+        return 'AccessAllOrNothing()';
+    }
 }
