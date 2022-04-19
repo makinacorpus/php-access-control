@@ -90,7 +90,7 @@ final class MethodExpressionTest extends TestCase
         ]);
 
         self::expectException(AccessRuntimeError::class);
-        self::expectExceptionMessageMatches("/Argument \\\$id maps the context argument 'foo' which does not exist'/");
+        self::expectExceptionMessageMatches("/Argument from context \\\$id is not an object, cannot fetch property 'id'/");
         $method->mapArgumentsFromContext(['foo' => 12, 'bar' => 13]);
     }
 
