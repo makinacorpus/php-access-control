@@ -541,6 +541,106 @@ Symfony container, and tag them using the `access_control.service` tag.
 
 Finding them will be delegated to the `ContainerServiceLocator` implementation.
 
+# Symfony integration
+
+This package provide a Symfony 5.x and 6.x integration.
+
+## Setup
+
+Enable it by adding to `config/bundles.php`:
+
+```php
+
+return [
+    MakinaCorpus\AccessControl\Bridge\Symfony\AccessControlBundle::class => ['all' => true],
+];
+```
+
+There is no configuration to be done.
+
+## Integration with controller
+
+All controller arguments will be available as context arguments for access
+control policies, this is especially useful for `AccessMethod` and
+`AccessService` policies. See below examples.
+
+### Using an object argument method
+
+You can use any controller argument object's method as the access control
+method:
+
+```php
+namespace App\Controller;
+
+use App\Entity\BlogPost;
+
+class BlogPostController
+{
+    /**
+     * Let's consider that you have an ArgumentValueResolver for the
+     * BlogPost class here.
+     */
+    #[AccessMethod(post.isUserOwner(subject)]
+    public function edit(BlogPost $post)
+    {
+    }
+}
+```
+
+In this example, method access check will call the `BlogPost::isUserOwner()`
+method on the `$post` instance controller argument, passing it the default
+*subject*, ie. current logged in `UserInterface` if any.
+
+### Using an argument as method parameter
+
+```php
+namespace App\Controller;
+
+use App\Entity\BlogPost;
+
+class BlogPostController
+{
+    /**
+     * Let's consider that you have an ArgumentValueResolver for the
+     * BlogPost class here.
+     */
+    #[AccessMethod(post.isTokenValid(token: accessToken)]
+    public function view(BlogPost $post, string $accessToken)
+    {
+    }
+}
+```
+
+In this example, method access check will call the `BlogPost::isTokenValid()`
+method on the `$post` instance controller argument, passing it the `accessToken`
+controller argument value, as being the `$token` named parameter of the
+`isTokenValid()` method.
+
+### Using request GET and POST parameters
+
+Method expression don't support calling method with arguments on context
+arguments yet, nevertheless, using an incomming request query parameter
+is a common use case.
+
+In order to work around this situation, when using an access policy over
+a controller method, meta-arguments are provided by default:
+
+ - `_get.PARAM_NAME`: will return the `PARAM_NAME` GET parameter value,
+ - `_post.PARAM_NAME`: will return the `PARAM_NAME` POST parameter value,
+
+Warning: those context arguments names can be shadowed by your controller
+argument names.
+
+### Using query POST parameters
+
+@todo
+
+### Symfony user is the default subject
+
+If you don't specify a `subject` argument in your `AccessMethod` and
+`AccessService` arguments, default one will always be the logged in Symfony's
+`UserInterface` instance, if any.
+
 # Note about PHP 8 attributes
 
 All attributes class can also be used as Doctrine annotations transparently.

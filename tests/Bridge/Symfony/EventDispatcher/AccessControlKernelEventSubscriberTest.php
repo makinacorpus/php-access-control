@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MakinaCorpus\AccessControl\Tests\Bridge\Symfony\DependencyInjection;
+namespace MakinaCorpus\AccessControl\Tests\Bridge\Symfony\EventDispatcher;
 
 use MakinaCorpus\AccessControl\Authorization\DefaultAuthorization;
 use MakinaCorpus\AccessControl\Bridge\Symfony\EventDispatcher\AccessControlKernelEventSubscriber;

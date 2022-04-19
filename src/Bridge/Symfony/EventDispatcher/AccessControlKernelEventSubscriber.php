@@ -97,7 +97,6 @@ final class AccessControlKernelEventSubscriber implements EventSubscriberInterfa
 
         try {
             $ret = [];
-
             foreach ((new \ReflectionFunction($callback))->getParameters() as $index => $parameter) {
                 \assert($parameter instanceof \ReflectionParameter);
                 if ($index < $argsSize) {
@@ -108,13 +107,28 @@ final class AccessControlKernelEventSubscriber implements EventSubscriberInterfa
                     $ret[$parameter->getName()] = $parameter->getDefaultValue();
                 }
             }
-
-            return $ret;
-
         } catch (\ReflectionException $e) {
             // Better be safe than sorry, this will restore previous
             // version behaviour.
-            return $eventArgs;
+            $ret = $eventArgs;
         }
+
+        $request = $event->getRequest();
+
+        // Always expose request.
+        if (!\array_key_exists('request', $ret)) {
+            $ret['request'] = $request;
+        }
+
+        // Expose meta-arguments for reading incomming request parameters.
+        $ret['_get'] = new ParameterBagValueHolder($request->query);
+        $ret['_post'] = new ParameterBagValueHolder($request->request);
+
+        return $ret;
+    }
+
+    private function getParameters(ControllerArgumentsEvent $event): array
+    {
+
     }
 }

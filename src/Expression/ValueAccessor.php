@@ -11,6 +11,9 @@ final class ValueAccessor
 {
     public static function getValueFrom(object $object, string $propertyName)
     {
+        if ($object instanceof ValueHolder) {
+            return $object->getValue($propertyName);
+        }
         if ($value = self::getValueFromProperty($object, $propertyName)) {
             return $value;
         }
