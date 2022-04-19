@@ -39,7 +39,14 @@ final class MethodExpression implements Expression
         foreach ($this->arguments as $argument) {
             \assert($argument instanceof ExpressionArgument);
 
-            if ($argument->context && \array_key_exists($argument->context, $context)) {
+            if ($argument->context) {
+                if (!\array_key_exists($argument->context, $context)) {
+                    throw new AccessRuntimeError(\sprintf(
+                        "Argument $%s maps the context argument '%s' which does not exist",
+                        $argument->name,
+                        $argument->context
+                    ));
+                }
                 if (\array_key_exists($argument->name, $context)) {
                     throw new AccessRuntimeError(\sprintf(
                         "Argument $%s cannot be overriden from context argument '%s'",
@@ -48,11 +55,18 @@ final class MethodExpression implements Expression
                     ));
                 }
                 $context[$argument->name] = $context[$argument->context];
+            } else {
+                if (!\array_key_exists($argument->name, $context)) {
+                    throw new AccessRuntimeError(\sprintf(
+                        "Argument $%s does not exist in context",
+                        $argument->name
+                    ));
+                }
             }
         }
 
         if ($argument->property) {
-            $object = $context[$argument->name];
+            $object = $context[$argument->name] ?? null; // Avoid crash.
             if (!\is_object($object)) {
                 throw new AccessRuntimeError(\sprintf(
                     "Argument from context $%s is not an object, cannot fetch property '%s'",
@@ -60,7 +74,6 @@ final class MethodExpression implements Expression
                     $argument->property
                 ));
             }
-
             $context[$argument->name] = ValueAccessor::getValueFrom($object, $argument->property);
         }
 
