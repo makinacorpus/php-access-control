@@ -178,8 +178,9 @@ final class MethodExecutor
 
             } else {
                 \assert($reflectionType instanceof \ReflectionNamedType);
+                $typeName = $reflectionType->getName();
 
-                return [$reflectionType->getName()];
+                return 'mixed' === $typeName ? [] : [$typeName];
             }
         }
 
