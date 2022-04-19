@@ -57,6 +57,40 @@ class FooEntity
 And that's pretty much it, then you need to call `Authorization::isGranted($yourEntity)`
 whenever it fits with your input/output.
 
+## Using context argument method
+
+Method can be any context argument method, for example, consider the following
+entity:
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\Entity;
+
+class Product
+{
+    private int $quantityInStock;
+
+    public function hasEnoughQuantity(int $needed): bool
+    {
+        return $this->quantityInStock > $needed;
+    }
+}
+```
+
+Then the following controller function (framework agnostic):
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\Entity;
+
+#[AccessMethod("product.hasEnoughQuantity(quantityRequired)")]
+public function addToCart(Product $product, int $quantityRequired)
+{
+    // Do something.
+}
+```
+
+In this example, both `product` and `quantityRequired` are controller
+parameters, we are not working with a resource.
+
 ## Using service method
 
 ### Use-case

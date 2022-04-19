@@ -20,9 +20,12 @@ use MakinaCorpus\AccessControl\SubjectLocator\NullSubjectLocator;
 use MakinaCorpus\AccessControl\SubjectLocator\SubjectLocator;
 use MakinaCorpus\AccessControl\Tests\Mock\FixedRoleChecker;
 use MakinaCorpus\AccessControl\Tests\Mock\FixedSubjectLocator;
+use MakinaCorpus\AccessControl\Tests\Mock\MethodArgumentInContext;
 use MakinaCorpus\AccessControl\Tests\Mock\WithDelegateResource;
 use MakinaCorpus\AccessControl\Tests\Mock\WithInvalidDelegateResource;
 use MakinaCorpus\AccessControl\Tests\Mock\WithInvalidResourceResource;
+use MakinaCorpus\AccessControl\Tests\Mock\WithMethodArgumentInContextResource;
+use MakinaCorpus\AccessControl\Tests\Mock\WithMethodResource;
 use MakinaCorpus\AccessControl\Tests\Mock\WithResourceResource;
 use MakinaCorpus\AccessControl\Tests\Mock\WithResourceResourceLocator;
 use MakinaCorpus\AccessControl\Tests\Mock\WithServiceResource;
@@ -284,6 +287,73 @@ final class DefaultAuthorizationTest extends TestCase
         );
 
         self::assertFalse($auth->isGranted($resource));
+    }
+
+    public function testMethodCanBeCalledOnContextArgument(): void
+    {
+        $subject = new \stdClass();
+        $resource = new WithMethodArgumentInContextResource();
+
+        $auth = new DefaultAuthorization(
+            $this->createPolicyLoader(), // Required.
+            new FixedSubjectLocator($subject),
+            /* ?ResourceLocator $resourceLocator */ null,
+            /* ?ServiceLocator $serviceLocator */ null, // This what we test here.
+            /* ?PermissionChecker $permissionChecker */ null,
+            /* ?RoleChecker $roleChecker */ null,
+            false,
+            false // WITHOUT DEBUG
+        );
+
+        // Valid value in context.
+        self::assertTrue($auth->isGranted($resource, [
+            'bar' => 13,
+            'foo' => new MethodArgumentInContext(),
+        ]));
+
+        // Invalid value in context.
+        self::assertFalse($auth->isGranted($resource, [
+            'bar' => 12,
+            'foo' => new MethodArgumentInContext(),
+        ]));
+
+        // Invalid argument in context.
+        self::assertFalse($auth->isGranted($resource, [
+            'bar' => 13,
+            'foo' => "Non object, method is not callable",
+        ]));
+
+        // Missing argument in context.
+        self::assertFalse($auth->isGranted($resource, [
+            'bar' => 13,
+        ]));
+    }
+
+    public function testMethod(): void
+    {
+        $subject = new \stdClass();
+        $resource = new WithMethodResource();
+
+        $auth = new DefaultAuthorization(
+            $this->createPolicyLoader(), // Required.
+            new FixedSubjectLocator($subject),
+            /* ?ResourceLocator $resourceLocator */ null,
+            /* ?ServiceLocator $serviceLocator */ null, // This what we test here.
+            /* ?PermissionChecker $permissionChecker */ null,
+            /* ?RoleChecker $roleChecker */ null,
+            false,
+            false // WITHOUT DEBUG
+        );
+
+        // Valid value in context.
+        self::assertTrue($auth->isGranted($resource, [
+            'bar' => 13,
+        ]));
+
+        // Invalid value in context.
+        self::assertFalse($auth->isGranted($resource, [
+            'bar' => 12,
+        ]));
     }
 
     public function testAccessDelegate(): void

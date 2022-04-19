@@ -384,12 +384,21 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
         $method = (new MethodExpressionParser())->parse($policy->getMethod());
         \assert($method instanceof MethodExpression);
 
-        if ($method->getServiceName()) {
-            throw new AccessConfigurationError(\sprintf("Cannot apply a service method call when using an %s policy.", AccessMethod::class));
+        // @todo This code should live in external generic code.
+        if ($serviceName = $method->getServiceName()) {
+            if (!\array_key_exists($serviceName, $context)) {
+                throw new AccessConfigurationError(\sprintf("Cannot call method %s.%s(): argument '%s' does not exist in context", $serviceName, $method->getServiceMethodName(), $serviceName));
+            }
+            $service = $context[$serviceName];
+            if (!\is_object($service)) {
+                throw new AccessConfigurationError(\sprintf("Cannot call method %s.%s(): argument '%s' from context is not an object", $serviceName, $method->getServiceMethodName(), $serviceName));
+            }
+        } else {
+            $service = $resource;
         }
 
         return (new MethodExecutor())->callResourceMethod(
-            $resource,
+            $service,
             $method->getServiceMethodName(),
             $method->mapArgumentsFromContext(['subject' => new ExpressionArgumentChoices($subjects), 'resource' => $resource] + $context)
         );
