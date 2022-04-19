@@ -28,6 +28,9 @@ interface Authorization
      * @param array $context
      *   Key-value pairs of contextual values. For a controller, for example,
      *   it will be its resolved arguments values with names.
+     *
+     * @deprecated
+     *   Use isGranted() directly, you can pass an array [object, methodName].
      */
     public function isMethodGranted($object, string $methodName, array $context = []): bool;
 }

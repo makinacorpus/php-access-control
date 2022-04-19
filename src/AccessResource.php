@@ -19,8 +19,8 @@ use MakinaCorpus\AccessControl\Expression\ValueAccessor;
  *     or method may yield/return a value of any type (mixed type).
  *
  * Beware that the property name refers to a property from the object passed
- * to the Authorization::{isGranted,isMethodGranted)() $resource parameter
- * and not the $resourceType given to the AccessResource attribute constructor.
+ * to the Authorization::{isGranted,isGranted)() $resource parameter and not
+ * the $resourceType given to the AccessResource attribute constructor.
  *
  * Usage:
  *   #[AccessResource(SomeClass::class, "somePropertyName")]

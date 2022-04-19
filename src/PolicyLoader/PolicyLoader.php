@@ -25,5 +25,5 @@ interface PolicyLoader
      *
      * @return \MakinaCorpus\AccessControl\AccessPolicy[]
      */
-    public function loadFromFunction(string $functionName): iterable;
+    public function loadFromFunction(callable $functionName): iterable;
 }

@@ -61,7 +61,7 @@ final class AttributePolicyLoader implements PolicyLoader
     /**
      * {@inheritdoc}
      */
-    public function loadFromFunction(string $functionName): iterable
+    public function loadFromFunction(callable $functionName): iterable
     {
         try {
             $reflectionFunction = new \ReflectionFunction($functionName);

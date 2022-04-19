@@ -44,7 +44,7 @@ final class ChainPolicyLoader implements PolicyLoader
     /**
      * {@inheritdoc}
      */
-    public function loadFromFunction(string $functionName): iterable
+    public function loadFromFunction(callable $functionName): iterable
     {
         return (function () use ($functionName) {
             foreach ($this->instances as $instance) {

@@ -91,18 +91,20 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
      */
     public function isGranted($resource, array $context = []): bool
     {
-        if (!\is_object($resource)) {
-            throw new AccessRuntimeError("Only class are implemented for now.");
-        }
-
         $profiler = $this->startProfiler();
         try {
             $profiler->start('isGranted');
             $this->runId = $profiler->getId();
 
-            $this->info("Received isGranted({resource})", ['resource' => \get_class($resource)]);
+            $this->info("Received isGranted({resource})", ['resource' => \get_debug_type($resource)]);
 
-            $policies = $this->policyLoader->loadFromClass(\get_class($resource));
+            if (\is_callable($resource) || \is_array($resource)) {
+                $policies = $this->policyLoader->loadFromFunction(\Closure::fromCallable($resource));
+            } else if (\is_object($resource)) {
+                $policies = $this->policyLoader->loadFromClass(\get_class($resource));
+            } else {
+                throw new AccessRuntimeError("Only class and callables are implemented for now.");
+            }
 
             return $this->decideOnPolicies($policies, $resource, $context, $profiler);
         } finally {
@@ -114,33 +116,11 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
 
     /**
      * {@inheritdoc}
+     * @deprecated
      */
     public function isMethodGranted($resource, string $methodName, array $context = []): bool
     {
-        $className = null;
-        if (\is_object($resource)) {
-            $className = \get_class($resource);
-        } else if (\is_string($resource) && \class_exists($className)) {
-            $className = $resource;
-        } else {
-            throw new AccessRuntimeError("Given object is neither an instance or a class name.");
-        }
-
-        $profiler = $this->startProfiler();
-        try {
-            $profiler->start('isMethodGranted');
-            $this->runId = $profiler->getId();
-
-            $this->info("Received isMethodGranted({resource}::{method})", ['resource' => \get_class($resource), 'method' => $methodName]);
-
-            $policies = $this->policyLoader->loadFromClassMethod($className, $methodName);
-
-            return $this->decideOnPolicies($policies, $resource, $context, $profiler);
-        } finally {
-            $profiler->stop();
-            $this->debug("isMethodGranted() TIME {time} msec", ['time' => $profiler->getElapsedTime()]);
-            $this->runId = null;
-        }
+        return $this->isGranted([$resource, $methodName], $context);
     }
 
     private function decideOnPolicies(iterable $policies, $resource, array $context, Profiler $profiler): bool
@@ -377,10 +357,6 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
 
     private function handlePolicyAccessMethod(AccessMethod $policy, array $subjects, $resource, array $context, Profiler $profiler): bool
     {
-        if (!\is_object($resource)) {
-            throw new AccessRuntimeError(\sprintf("Cannot apply an %s policy on a non-object", AccessMethod::class));
-        }
-
         $method = (new MethodExpressionParser())->parse($policy->getMethod());
         \assert($method instanceof MethodExpression);
 
