@@ -48,6 +48,8 @@ final class AccessControlKernelEventSubscriber implements EventSubscriberInterfa
             return;
         }
 
+        $arguments = $this->getArguments($controller, $event);
+
         // A controller can be anything that is "callable" per the PHP engine
         // but we cannot handle all use cases, let's just see how it goes with
         // those provided here.
@@ -55,14 +57,14 @@ final class AccessControlKernelEventSubscriber implements EventSubscriberInterfa
             // Controller is an instance of something, it could be a closure
             // or a callable class with an __invoke() method, let see is this
             // class has policies.
-            if (!$this->authorization->isGranted($controller, $event->getArguments())) {
+            if (!$this->authorization->isGranted($controller, $arguments)) {
                 throw new AccessDeniedException();
             }
         } else if (\is_string($controller)) {
             // A callable string is probably a function name, let's just see
             // if that works.
             // @todo It could be something like "ClassName::method" as well.
-            if (!$this->authorization->isGranted($controller, $event->getArguments())) {
+            if (!$this->authorization->isGranted($controller, $arguments)) {
                 throw new AccessDeniedException();
             }
         } else if (\is_array($controller) && \count($controller) === 2) {
@@ -73,10 +75,46 @@ final class AccessControlKernelEventSubscriber implements EventSubscriberInterfa
             $object = $controller[0];
             if (\is_object($object) || (\is_string($object) && \class_exists($object))) {
                 // @todo Arguments are unnamed.
-                if (!$this->authorization->isMethodGranted($object, $controller[1], $event->getArguments())) {
+                if (!$this->authorization->isMethodGranted($object, $controller[1], $arguments)) {
                     throw new AccessDeniedException();
                 }
             }
+        }
+    }
+
+    /**
+     * Event controller arguments are numerically indexed, we need to name them
+     * in order to propagate correct names, and allow API end user to use its
+     * controller argument names as context value names for service and method
+     * call expressions.
+     */
+    private function getArguments(mixed $controller, ControllerArgumentsEvent $event): array
+    {
+        $eventArgs = $event->getArguments();
+        $argsSize = \count($eventArgs);
+
+        $callback = \Closure::fromCallable($controller);
+
+        try {
+            $ret = [];
+
+            foreach ((new \ReflectionFunction($callback))->getParameters() as $index => $parameter) {
+                \assert($parameter instanceof \ReflectionParameter);
+                if ($index < $argsSize) {
+                    $ret[$parameter->getName()] = $eventArgs[$index];
+                } else if ($parameter->isDefaultValueAvailable()) {
+                    // For all unspecified values, use the function parameter
+                    // default value, if set or optional.
+                    $ret[$parameter->getName()] = $parameter->getDefaultValue();
+                }
+            }
+
+            return $ret;
+
+        } catch (\ReflectionException $e) {
+            // Better be safe than sorry, this will restore previous
+            // version behaviour.
+            return $eventArgs;
         }
     }
 }
