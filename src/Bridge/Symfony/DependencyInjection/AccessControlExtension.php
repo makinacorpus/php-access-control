@@ -109,7 +109,7 @@ final class AccessControlExtension extends Extension
             false, // $denyIfNoPolicies = false
             $debugEnabled
         ]);
-        $authorizationDefinition->addTag('profiling.profiler_aware');
+        $authorizationDefinition->addTag('profiling.profiler_aware', ['channel' => 'access-control']);
         $container->setDefinition(DefaultAuthorization::class, $authorizationDefinition);
         $container->setAlias(Authorization::class, DefaultAuthorization::class);
         $container->setAlias(AuthorizationContext::class, DefaultAuthorization::class);
