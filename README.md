@@ -16,11 +16,93 @@ project to decide where and when those access control checks must be done.
 
 # Role Based Access Control (RBAC)
 
-@todo
+Role based access control is giving access to a resource when the subject has
+a given role. This API is agnostic from the subject implementation, so role is
+a discrete abstraction. In the API, a role is a simple text string.
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\Entity;
+
+use MakinaCorpus\AccessControl\AccessRole;
+
+#[AccessRole("ROLE_USER")]
+class FooEntity
+{
+    public function canDoThat(UserInterface $subject)
+    {
+        if ($this->owner !== $subject->getUsername()) {
+            return false;
+        }
+        return true;
+    }
+}
+```
+
+You need to implement the `MakinaCorpus\AccessControl\RoleChecker\RoleChecker`
+interface and register it for this work, for example:
+
+```php
+namespace MyVendor\MyApp\AccessControl;
+
+use MakinaCorpus\AccessControl\RoleChecker\RoleChecker;
+use MyVendor\MyApp\Entity\SomeUserImplementation;
+
+class MyRoleChecker implement RoleChecker
+{
+    public function subjectHasRole($subject, string $role): bool
+    {
+        return $subject instanceof SomeUserImplementation && $subject->hasRole($role);
+    }
+}
+```
+
+When using the Symfony bundle, a default `RoleChecker` implementation uses
+Symfony's current user roles transparently.
 
 # Permission Based Access Control (PBAC)
 
-@todo
+Role based access control is giving access to a resource when the subject has
+a given permission. This API is agnostic from the subject implementation, so
+permission is a discrete abstraction. In the API, a role is a simple text
+string.
+
+```php
+namespace MyVendor\MyApp\SomeBoundingContext\Entity;
+
+use MakinaCorpus\AccessControl\AccessPermission;
+
+#[AccessPermission("do_that_with_foo")]
+class FooEntity
+{
+    public function canDoThat(UserInterface $subject)
+    {
+        if ($this->owner !== $subject->getUsername()) {
+            return false;
+        }
+        return true;
+    }
+}
+```
+
+You need to implement the `MakinaCorpus\AccessControl\PermissionChecker\PermissionChecker`
+interface and register it for this work, for example.
+
+```php
+namespace MyVendor\MyApp\AccessControl;
+
+use MakinaCorpus\AccessControl\PermissionChecker\PermissionChecker;
+use MyVendor\MyApp\Entity\SomeUserImplementation;
+
+class MyPermissionChecker implement PermissionChecker
+{
+    public function subjectHasPermission($subject, string $$permission): bool
+    {
+        return $subject instanceof SomeUserImplementation && $subject->hasPermission($permission);
+    }
+}
+```
+
+This is no default `PermissionChecker` implementation.
 
 # Domain bound/driven access control
 
@@ -40,6 +122,8 @@ Let's dive into an exemple, assume you have a bus command:
 
 ```php
 namespace MyVendor\MyApp\SomeBoundingContext\Entity;
+
+use MakinaCorpus\AccessControl\AccessMethod;
 
 #[AccessMethod("canDoThat(subject)")]
 class FooEntity
@@ -81,6 +165,8 @@ Then the following controller function (framework agnostic):
 ```php
 namespace MyVendor\MyApp\SomeBoundingContext\Entity;
 
+use MakinaCorpus\AccessControl\AccessMethod;
+
 #[AccessMethod("product.hasEnoughQuantity(quantityRequired)")]
 public function addToCart(Product $product, int $quantityRequired)
 {
@@ -99,6 +185,8 @@ Let's dive into an exemple, assume you have a bus command:
 
 ```php
 namespace MyVendor\MyApp\SomeBoundingContext\Command;
+
+use MakinaCorpus\AccessControl\AccessService;
 
 #[AccessService("ThatService.canDoThat(subject, resource)")]
 class DoThisOrThatCommand
@@ -179,6 +267,8 @@ class ThatService
 Then:
 
 ```php
+use MakinaCorpus\AccessControl\AccessService;
+
 #[AccessService("ThatService.canDoThat(myBusinessUser: subject, myDomainEntity: resource)")]
 class DoThisOrThatCommand
 {
@@ -207,6 +297,8 @@ class ThatService
 Then:
 
 ```php
+use MakinaCorpus\AccessControl\AccessService;
+
 #[AccessService("ThatService.canDoThat(myBusinessUser: subject, myDomainEntity: resource.entityId)")]
 class DoThisOrThatCommand
 {
@@ -235,6 +327,8 @@ class ThatService
 Then you could combine with explicit parameter naming and write:
 
 ```php
+use MakinaCorpus\AccessControl\AccessService;
+
 #[AccessService("ThatService.canDoThat(userId: subject.id, resource)")]
 class DoThisOrThatCommand
 {
@@ -387,6 +481,7 @@ access checks is to add the `AccessResource` attribute on your command:
 namespace MyVendor\MyApp\SomeBoundingContext\Command;
 
 use MakinaCorpus\AccessControl\AccessResource;
+use MakinaCorpus\AccessControl\AccessService;
 use MyVendor\MyApp\SomeBoundingContext\Model\SomeEntity;
 
 #[AccessResource(SomeEntity::class, "entityId")]
@@ -413,6 +508,9 @@ For example:
 ```php
 namespace MyVendor\MyApp\SomeBoundingContext\Command;
 
+use MakinaCorpus\AccessControl\AccessMethod;
+use MakinaCorpus\AccessControl\AccessRole;
+
 #[AccessRole("ROLE_ADMIN")]
 #[AccessMethod("ThatService.canDoThat(subject, resource)")]
 class DoThisOrThatCommand
@@ -427,6 +525,10 @@ the `AccessAllOrNothing()` attribute, such as:
 
 ```php
 namespace MyVendor\MyApp\SomeBoundingContext\Command;
+
+use MakinaCorpus\AccessControl\AccessAllOrNothing;
+use MakinaCorpus\AccessControl\AccessMethod;
+use MakinaCorpus\AccessControl\AccessRole;
 
 #[AccessAllOrNothing]
 #[AccessRole("ROLE_ADMIN")]
@@ -448,6 +550,8 @@ Consider you have the following bus command:
 ```php
 namespace MyVendor\MyApp\SomeBoundingContext\Command;
 
+use MakinaCorpus\AccessControl\AccessRole;
+
 #[AccessRole("ROLE_ADMIN")]
 class DoThisOrThatCommand
 {
@@ -459,6 +563,7 @@ And you want to apply the same policy on a controller method:
 ```php
 namespace MyVendor\MyApp\SomeBoundingContext\Controller;
 
+use MakinaCorpus\AccessControl\AccessDelegate;
 use MyVendor\MyApp\SomeBoundingContext\Command\DoThisOrThatCommand
 
 class SomeController
@@ -573,6 +678,7 @@ method:
 namespace App\Controller;
 
 use App\Entity\BlogPost;
+use MakinaCorpus\AccessControl\AccessMethod;
 
 class BlogPostController
 {
@@ -597,6 +703,7 @@ method on the `$post` instance controller argument, passing it the default
 namespace App\Controller;
 
 use App\Entity\BlogPost;
+use MakinaCorpus\AccessControl\AccessMethod;
 
 class BlogPostController
 {
