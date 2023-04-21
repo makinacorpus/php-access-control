@@ -26,6 +26,7 @@ use MakinaCorpus\AccessControl\ServiceLocator\ServiceLocator;
 use MakinaCorpus\AccessControl\SubjectLocator\ChainSubjectLocator;
 use MakinaCorpus\AccessControl\SubjectLocator\MemoryCacheSubjectLocator;
 use MakinaCorpus\AccessControl\SubjectLocator\SubjectLocator;
+use MakinaCorpus\ArgumentResolver\DefaultArgumentResolver;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -58,6 +59,7 @@ final class AccessControlExtension extends Extension
 
         // Integration of makinacorpus/argument-resolver.
         $argumentResolver = new Definition();
+        $argumentResolver->setClass(DefaultArgumentResolver::class);
         $argumentResolver->addTag('argument_resolver', ['id' => 'access_control']);
         $container->setDefinition('access_control.argument_resolver', $argumentResolver);
 
