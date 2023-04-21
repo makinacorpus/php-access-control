@@ -41,6 +41,7 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
     use LoggerAwareTrait;
     use ProfilerContextAwareTrait;
 
+    private MethodExecutor $methodExecutor;
     private PolicyLoader $policyLoader;
     private SubjectLocator $subjectLocator;
     private ?ResourceLocator $resourceLocator = null;
@@ -58,12 +59,14 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
         ?ServiceLocator $serviceLocator = null,
         ?PermissionChecker $permissionChecker = null,
         ?RoleChecker $roleChecker = null,
+        ?MethodExecutor $methodExecutor = null,
         bool $denyIfNoPolicies = false,
         bool $debug = true
     ) {
         $this->debug = $debug;
         $this->denyIfNoPolicies = $denyIfNoPolicies;
         $this->logger = new NullLogger();
+        $this->methodExecutor = $methodExecutor ?? new MethodExecutor();
         $this->permissionChecker = $permissionChecker;
         $this->policyLoader = $policyLoader;
         $this->resourceLocator = $resourceLocator;
@@ -373,7 +376,7 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
             $service = $resource;
         }
 
-        return (new MethodExecutor())->callResourceMethod(
+        return $this->methodExecutor->callResourceMethod(
             $service,
             $method->getServiceMethodName(),
             $method->mapArgumentsFromContext(['subject' => new ExpressionArgumentChoices($subjects), 'resource' => $resource] + $context)
@@ -406,7 +409,7 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
             return false;
         }
 
-        return (new MethodExecutor())->callCallback(
+        return $this->methodExecutor->callCallback(
             $serviceCallback,
             $method->mapArgumentsFromContext(['subject' => new ExpressionArgumentChoices($subjects), 'resource' => $resource] + $context)
         );

@@ -11,6 +11,7 @@ use MakinaCorpus\AccessControl\Bridge\Symfony\AccessControl\ContainerServiceLoca
 use MakinaCorpus\AccessControl\Bridge\Symfony\AccessControl\UserRoleChecker;
 use MakinaCorpus\AccessControl\Bridge\Symfony\AccessControl\UserSubjectLocator;
 use MakinaCorpus\AccessControl\Bridge\Symfony\EventDispatcher\AccessControlKernelEventSubscriber;
+use MakinaCorpus\AccessControl\Expression\Method\MethodExecutor;
 use MakinaCorpus\AccessControl\PermissionChecker\ChainPermissionChecker;
 use MakinaCorpus\AccessControl\PermissionChecker\PermissionChecker;
 use MakinaCorpus\AccessControl\PolicyLoader\AttributePolicyLoader;
@@ -54,6 +55,17 @@ final class AccessControlExtension extends Extension
             $container->setDefinition(AttributePolicyLoader::class, $attributePolicyLoader);
             $policyLoaders[] = new Reference(AttributePolicyLoader::class);
         }
+
+        // Integration of makinacorpus/argument-resolver.
+        $argumentResolver = new Definition();
+        $argumentResolver->addTag('argument_resolver', ['id' => 'access_control']);
+        $container->setDefinition('access_control.argument_resolver', $argumentResolver);
+
+        // Method executor for using with makinacorpus/argument-resolver.
+        $methodExecutor = new Definition();
+        $methodExecutor->setClass(MethodExecutor::class);
+        $methodExecutor->setArguments([new Reference('access_control.argument_resolver')]);
+        $container->setDefinition(MethodExecutor::class, $methodExecutor);
 
         $policyLoaderChain = new Definition();
         $policyLoaderChain->setClass(ChainPolicyLoader::class);
@@ -105,6 +117,7 @@ final class AccessControlExtension extends Extension
             new Reference(ServiceLocator::class),
             new Reference(PermissionChecker::class),
             new Reference(RoleChecker::class),
+            new Reference(MethodExecutor::class),
             // @todo make this configurable
             false, // $denyIfNoPolicies = false
             $debugEnabled

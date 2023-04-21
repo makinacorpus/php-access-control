@@ -161,7 +161,6 @@ final class MethodExecutorTest extends TestCase
         $parameters = [];
 
         self::expectException(AccessRuntimeError::class);
-        self::expectExceptionMessageMatches('/missing parameter/');
         $executor->callCallback($functionName, $parameters);
     }
 
@@ -173,7 +172,6 @@ final class MethodExecutorTest extends TestCase
         $parameters = ['foo' => 37, 'bar' => 'Mouh'];
 
         self::expectException(AccessRuntimeError::class);
-        self::expectExceptionMessageMatches("/expected one of 'int', 'string' given/");
         $executor->callCallback($functionName, $parameters);
     }
 

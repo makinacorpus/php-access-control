@@ -41,6 +41,7 @@ final class AccessControlKernelEventSubscriberTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null, // This what we test here.
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true // WITH DEBUG
         );

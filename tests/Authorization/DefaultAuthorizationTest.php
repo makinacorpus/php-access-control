@@ -50,6 +50,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true
         );
@@ -74,6 +75,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true
         );
@@ -90,6 +92,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true
         );
@@ -112,6 +115,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false, // This is what we test here.
             true
         );
@@ -145,6 +149,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true
         );
@@ -169,6 +174,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             true, // This is what we test here.
             true
         );
@@ -202,6 +208,7 @@ final class DefaultAuthorizationTest extends TestCase
             }, // This what we test here.
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true // WITH DEBUG
         );
@@ -221,6 +228,7 @@ final class DefaultAuthorizationTest extends TestCase
             new NullServiceLocator(), // This what we test here.
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true // WITH DEBUG
         );
@@ -242,6 +250,7 @@ final class DefaultAuthorizationTest extends TestCase
             new NullServiceLocator(), // This what we test here.
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             false // WITHOUT DEBUG
         );
@@ -261,6 +270,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null, // This what we test here.
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true // WITH DEBUG
         );
@@ -282,6 +292,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null, // This what we test here.
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             false // WITHOUT DEBUG
         );
@@ -301,6 +312,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null, // This what we test here.
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             false // WITHOUT DEBUG
         );
@@ -341,6 +353,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null, // This what we test here.
             /* ?PermissionChecker $permissionChecker */ null,
             /* ?RoleChecker $roleChecker */ null,
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             false // WITHOUT DEBUG
         );
@@ -368,6 +381,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             new FixedRoleChecker(true),
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true // WITH DEBUG
         );
@@ -387,6 +401,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             new FixedRoleChecker(true),
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true // WITH DEBUG
         );
@@ -408,6 +423,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             new FixedRoleChecker(true),
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             false // WITHOUT DEBUG
         );
@@ -442,6 +458,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             new FixedRoleChecker(true), // Always allow input resource.
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true // WITH DEBUG
         );
@@ -461,6 +478,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             new FixedRoleChecker(true), // Always allow input resource.
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true // WITH DEBUG
         );
@@ -482,6 +500,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             new FixedRoleChecker(true), // Always allow input resource.
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             false // NO DEBUG
         );
@@ -501,6 +520,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             new FixedRoleChecker(true), // Always allow input resource.
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             true // WITH DEBUG
         );
@@ -522,6 +542,7 @@ final class DefaultAuthorizationTest extends TestCase
             /* ?ServiceLocator $serviceLocator */ null,
             /* ?PermissionChecker $permissionChecker */ null,
             new FixedRoleChecker(true), // Always allow input resource.
+            /* ?MethodExecutor $methodExecutor */ null,
             false,
             false // NO DEBUG
         );
