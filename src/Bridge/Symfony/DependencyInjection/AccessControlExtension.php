@@ -60,7 +60,7 @@ final class AccessControlExtension extends Extension
         // Integration of makinacorpus/argument-resolver.
         $argumentResolver = new Definition();
         $argumentResolver->setClass(DefaultArgumentResolver::class);
-        $argumentResolver->addTag('argument_resolver', ['id' => 'access_control']);
+        $argumentResolver->addTag('custom.argument_resolver', ['id' => 'access_control']);
         $container->setDefinition('access_control.argument_resolver', $argumentResolver);
 
         // Method executor for using with makinacorpus/argument-resolver.
