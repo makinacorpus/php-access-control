@@ -99,7 +99,7 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
             $profiler->start('isGranted');
             $this->runId = $profiler->getId();
 
-            $this->info("Received isGranted({resource})", ['resource' => \get_debug_type($resource)]);
+            $this->debug("Received isGranted({resource})", ['resource' => \get_debug_type($resource)]);
 
             if (\is_callable($resource) || \is_array($resource)) {
                 $policies = $this->policyLoader->loadFromFunction(\Closure::fromCallable($resource));
@@ -202,11 +202,11 @@ final class DefaultAuthorization implements Authorization, AuthorizationContext,
     private function returnIfNoPolicyFound(): bool
     {
         if ($this->denyIfNoPolicies) {
-            $this->warning("No policy found, DENY by configuration.");
+            $this->debug("No policy found, DENY by configuration.");
 
             return false;
         } else {
-            $this->warning("No policy found, ALLOW by configuration.");
+            $this->debug("No policy found, ALLOW by configuration.");
 
             return true;
         }
