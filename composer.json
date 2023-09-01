@@ -14,7 +14,7 @@
     "require": {
         "php": ">=8.0",
         "psr/log": ">=1.0",
-        "makinacorpus/argument-resolver": "^1.0",
+        "makinacorpus/argument-resolver": "^1.0.4",
         "makinacorpus/profiling": "^1.3 || ^2.0.1"
     },
     "require-dev": {
